@@ -20,8 +20,8 @@ import javax.persistence.Table;
 public class Prestito {
 
 	@Id
-	@GeneratedValue(strategy=GenerationType.SEQUENCE, generator = "my_sequence3" )
-	@SequenceGenerator(name = "my_sequence3", sequenceName = "my_sequence3_name", initialValue = 1, allocationSize = 1)
+	@GeneratedValue(strategy=GenerationType.SEQUENCE, generator = "my_seq3" )
+	@SequenceGenerator(name = "my_seq3", sequenceName = "my_seq3_name", initialValue = 1, allocationSize = 1)
 	@Column(name="id_prestito")
 	private long idPrestito;
 	

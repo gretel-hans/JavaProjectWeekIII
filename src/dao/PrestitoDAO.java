@@ -100,4 +100,19 @@ public class PrestitoDAO implements IPrestitoDAO{
 		}
 		return null;
 	}
+	
+	@Override
+	public List<Catalogo> getElementiInPrestitoConIdUtente(long id) {
+		EntityManager em= JpaUtil.getEntityManagerFactory().createEntityManager();
+		try {
+			
+			Query q=em.createQuery("SELECT p.elementoPrestato FROM Prestito AS p INNER JOIN p.elementoPrestato AS c WHERE  ( p.elementoPrestato.getCodiceIsbn() = c.codiceIsbn AND  p.getUtente().getNumeroTessera() = :parametro_id AND p.dataRestituzioneEffettiva IS NULL AND Now() > p.dataRestituzionePrevista )");
+			return q.setParameter("parametro_id", id).getResultList();
+		}catch(Exception e) {
+			System.out.println("Errore su lettura di tutti i prestiti!!"+e);
+		}finally {
+			em.close();
+		}
+		return null;
+	}
 }

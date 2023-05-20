@@ -17,8 +17,7 @@ import utils.PeriodicitaRivista;
 public class MainProject {
 
 	public static void main(String[] args) {
-		// TODO Auto-generated method stub
-		System.out.println("Ciao2");
+		
 		UtenteDAO u=new UtenteDAO();
 		Utente u1=new Utente("Hansel", "Adjei", LocalDate.of(1999, 10, 20));
 		Utente u2=new Utente("Marta", "Neri", LocalDate.of(1989, 11, 12));
@@ -49,8 +48,9 @@ public class MainProject {
 		pr.save(pr2);
 		pr.save(pr3);
 		pr.save(pr4);
+		//pr4.getElementoPrestato().getCodiceIsbn()
 		
-		List<Prestito> l22=pr.getElementiInPrestitoNonRestituiti();
+		List<Catalogo> l22=pr.getElementiInPrestitoConIdUtente(1);
 		
 		
 		

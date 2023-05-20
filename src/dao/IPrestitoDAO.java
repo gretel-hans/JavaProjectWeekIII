@@ -12,5 +12,6 @@ public interface IPrestitoDAO {
 	public void update(Prestito p);
 	public List<Prestito> getAll();
 	public List<Prestito> getElementiInPrestitoNonRestituiti();
+	public List<Catalogo> getElementiInPrestitoConIdUtente(long id);
 	
 }
