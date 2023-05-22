@@ -1,5 +1,6 @@
 package dao;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.persistence.EntityManager;
@@ -27,7 +28,7 @@ public class CatalogoDAO implements ICatalogoDAO {
 			}
 			
 		}catch(Exception e) {
-			System.out.println("Errore su salvataggio del libro!!"+e);
+			System.out.println("Errore su salvataggio dell'elemento!!"+e);
 		}finally {
 			em.close();
 		}
@@ -40,6 +41,9 @@ public class CatalogoDAO implements ICatalogoDAO {
 		try {
 			em.getTransaction().begin();
 			Catalogo l=em.find(Catalogo.class, id);
+			if(l==null) {
+				System.out.println("Nel catalogo non è presente l'elemento con id: "+id);
+			}
 			em.getTransaction().commit();
 			return l;
 		}catch(Exception e) {
@@ -51,24 +55,22 @@ public class CatalogoDAO implements ICatalogoDAO {
 	}
 
 	@Override
-	public void delete(Catalogo l) {
+	public void delete(long id) {
 		EntityManager em= JpaUtil.getEntityManagerFactory().createEntityManager();
 		try {
+			Query q=em.createQuery("SELECT c FROM Catalogo AS c WHERE c.codiceIsbn = :eliminazione_id");
+			List<Catalogo> elementoEliminato=q.setParameter("eliminazione_id", id).getResultList();
 			em.getTransaction().begin();
-			em.remove(l);
+			if(elementoEliminato.size()==0) {
+				System.out.println("Nel catalogo non è presente l'elemento che si voleva eliminare con id: "+id);
+			}else if(elementoEliminato.size()==1) {
+				System.out.println(elementoEliminato.get(0).getTitolo()+ " con id: " +id+ " eliminato dal DB!!");
+			}
+			em.remove(elementoEliminato.get(0));
 			em.getTransaction().commit();
-			if(l instanceof Libro) {
-				System.out.println("Libro: "+l.getTitolo() + " eliminato dal DB!!");
-			}else if(l instanceof Rivista) {
-				System.out.println("Rivista: "+l.getTitolo() + " eliminata dal DB!!");
-			}
-			
 		}catch(Exception e) {
-			if(l instanceof Libro) {
-				System.out.println("Errore su eliminazione del libro!!"+e);
-			}else if(l instanceof Rivista) {
-				System.out.println("Errore su eliminazione della rivista!!"+e);
-			}
+				System.out.println("Errore sull'eliminazione dell'elemento!!"+e);
+			
 		}finally {
 			em.close();
 		}
@@ -88,7 +90,7 @@ public class CatalogoDAO implements ICatalogoDAO {
 		}
 		
 	}catch(Exception e) {
-		System.out.println("Errore su modifica del libro!!"+e);
+		System.out.println("Errore su modifica dell'elemento!!"+e);
 	}finally {
 		em.close();
 	}
@@ -97,10 +99,15 @@ public class CatalogoDAO implements ICatalogoDAO {
 
 	@Override
 	public List<Libro> getAllLibri() {
+		List<Libro> listaLibri =new ArrayList<Libro>();
 		EntityManager em= JpaUtil.getEntityManagerFactory().createEntityManager();
 		try {
 			Query q=em.createQuery("SELECT l FROM Libro l");
-			return q.getResultList();
+			listaLibri.addAll(q.getResultList());
+			if(listaLibri.size()==0) {
+				System.out.println("Non ci sono libri nel catalogo");
+			}
+			return listaLibri;
 		}catch(Exception e) {
 			System.out.println("Errore su lettura di tutti i libri!!"+e);
 		}finally {
@@ -111,12 +118,31 @@ public class CatalogoDAO implements ICatalogoDAO {
 	
 	@Override
 	public List<Rivista> getAllRiviste() {
+		List<Rivista> listaRiviste =new ArrayList<Rivista>();
 		EntityManager em= JpaUtil.getEntityManagerFactory().createEntityManager();
 		try {
 			Query q=em.createQuery("SELECT r FROM Rivista r");
-			return q.getResultList();
+			listaRiviste.addAll(q.getResultList());
+			if(listaRiviste.size()==0) {
+				System.out.println("Non ci sono riviste nel catalogo");
+			}
+			return listaRiviste;
 		}catch(Exception e) {
 			System.out.println("Errore su lettura di tutte le riviste!!"+e);
+		}finally {
+			em.close();
+		}
+		return null;
+	}
+	
+	@Override
+	public List<Catalogo> getAll() {
+		EntityManager em= JpaUtil.getEntityManagerFactory().createEntityManager();
+		try {
+			Query q=em.createQuery("SELECT c FROM Catalogo c");
+			return q.getResultList();
+		}catch(Exception e) {
+			System.out.println("Errore su lettura di tutti gli elementi del catalogo!!"+e);
 		}finally {
 			em.close();
 		}
@@ -127,8 +153,11 @@ public class CatalogoDAO implements ICatalogoDAO {
 		EntityManager em= JpaUtil.getEntityManagerFactory().createEntityManager();
 		try {
 			Query q=em.createQuery("SELECT c FROM Catalogo AS c WHERE c.annoPubblicazione = :anno_parametro");
-			System.out.println("Ecco gli elementi del catalogo pubblicati nel: "+n);
-			return q.setParameter("anno_parametro", n).getResultList();
+			List<Catalogo> listaPerAnnoPubblicazione=q.setParameter("anno_parametro", n).getResultList();
+			if (listaPerAnnoPubblicazione.size()==0) {
+				System.out.println("Nel catalogo non ci sono elementi pubblicati nel: "+n);
+			}
+			return listaPerAnnoPubblicazione;
 		}catch(Exception e) {
 			System.out.println("Errore su ricerca per anno pubblicazione !!"+e);
 		}finally {
@@ -141,8 +170,11 @@ public class CatalogoDAO implements ICatalogoDAO {
 		EntityManager em= JpaUtil.getEntityManagerFactory().createEntityManager();
 		try {
 			Query q=em.createQuery("SELECT c FROM Catalogo AS c WHERE c.autore = :autore_parametro");
-			System.out.println("Ecco i pubblicati da: "+s);
-			return q.setParameter("autore_parametro", s).getResultList();
+			List<Libro> listaLibriAutore=q.setParameter("autore_parametro", s).getResultList();
+			if(listaLibriAutore.size()==0) {
+				System.out.println("Non ci sono elementi nel catalogo scritti da: "+s);
+			}
+			return listaLibriAutore;
 		}catch(Exception e) {
 			System.out.println("Errore su ricerca per autore!!"+e);
 		}finally {
@@ -155,8 +187,11 @@ public class CatalogoDAO implements ICatalogoDAO {
 		EntityManager em= JpaUtil.getEntityManagerFactory().createEntityManager();
 		try {
 			Query q=em.createQuery("SELECT c FROM Catalogo AS c WHERE c.titolo LIKE :titolo_parametro  ");
-			System.out.println("Ecco gli elementi che nel loro titolo contengono: "+s);
-			return q.setParameter("titolo_parametro", "%" + s + "%").getResultList();
+			List<Catalogo> listaCatalogoTitoloContenuto=q.setParameter("titolo_parametro", "%" + s + "%").getResultList();
+			if(listaCatalogoTitoloContenuto.size()==0) {
+				System.out.println("Non ci sono elementi con il titolo che contengono: "+s +" nel catalogo");
+			}
+			return listaCatalogoTitoloContenuto;		
 		}catch(Exception e) {
 			System.out.println("Errore su ricerca per titolo!!"+e);
 		}finally {

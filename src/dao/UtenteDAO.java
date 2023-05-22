@@ -33,6 +33,9 @@ public class UtenteDAO implements IUtenteDAO {
 			em.getTransaction().begin();
 			Utente u=em.find(Utente.class, id);
 			em.getTransaction().commit();
+			if(u==null) {
+				System.out.println("Non esiste nessun utente con id: !!"+id);
+			}
 			return u;
 		}catch(Exception e) {
 			System.out.println("Errore sulla ricerca dell'utente!!"+e);
@@ -86,5 +89,7 @@ public class UtenteDAO implements IUtenteDAO {
 		}
 		return null;
 	}
+	
+	
 
 }

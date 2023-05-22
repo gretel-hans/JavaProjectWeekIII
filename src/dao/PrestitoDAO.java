@@ -33,6 +33,9 @@ public class PrestitoDAO implements IPrestitoDAO{
 			em.getTransaction().begin();
 			Prestito p=em.find(Prestito.class, id);
 			em.getTransaction().commit();
+			if(p==null) {
+				System.out.println("Non c'è nessun prestito con id: "+id);
+			}
 			return p;
 		}catch(Exception e) {
 			System.out.println("Errore su ricerca del prestito!!"+e);
@@ -89,12 +92,18 @@ public class PrestitoDAO implements IPrestitoDAO{
 	
 	@Override
 	public List<Prestito> getElementiInPrestitoNonRestituiti() {
+		
 		EntityManager em= JpaUtil.getEntityManagerFactory().createEntityManager();
 		try {
 			Query q=em.createQuery("SELECT p FROM Prestito p WHERE ( Now() > p.dataRestituzionePrevista AND p.dataRestituzioneEffettiva IS NULL )");
-			return q.getResultList();
+			List<Prestito> listaPrestiti=q.getResultList();
+			if(listaPrestiti.size()==0) {
+				System.out.println("Non ci sono elementi in prestito non restituiti");
+			}
+			return listaPrestiti;
+					
 		}catch(Exception e) {
-			System.out.println("Errore su lettura di tutti i prestiti!!"+e);
+			System.out.println("Errore su lettura di tutti gli elementi in prestito e non restituiti!!"+e);
 		}finally {
 			em.close();
 		}
@@ -103,11 +112,15 @@ public class PrestitoDAO implements IPrestitoDAO{
 	
 	@Override
 	public List<Catalogo> getElementiInPrestitoConIdUtente(long id) {
+		
 		EntityManager em= JpaUtil.getEntityManagerFactory().createEntityManager();
 		try {
-			
-			Query q=em.createQuery("SELECT p.elementoPrestato FROM Prestito AS p INNER JOIN p.elementoPrestato AS c WHERE  ( p.elementoPrestato.getCodiceIsbn() = c.codiceIsbn AND  p.getUtente().getNumeroTessera() = :parametro_id AND p.dataRestituzioneEffettiva IS NULL AND Now() > p.dataRestituzionePrevista )");
-			return q.setParameter("parametro_id", id).getResultList();
+			Query q=em.createQuery("SELECT p.elementoPrestato FROM Prestito AS p WHERE  ( Now() < p.dataRestituzionePrevista AND p.dataRestituzioneEffettiva IS NULL AND p.utente.numeroTessera = :parametro_id )");
+			List<Catalogo> listaPrestitiDiUnUtente=q.setParameter("parametro_id", id).getResultList();
+			if(listaPrestitiDiUnUtente.size()==0) {
+				System.out.println("Non ci sono elementi in prestito all'utente con id: "+id);
+			}
+			return listaPrestitiDiUnUtente;
 		}catch(Exception e) {
 			System.out.println("Errore su lettura di tutti i prestiti!!"+e);
 		}finally {
